@@ -571,7 +571,21 @@ class TuyaDevice {
         return new Promise((resolve, reject) => {
             this.device.set(command).then((result) => {
                 resolve(result)
-            })
+            }).catch(error => {
+		debugError('Set device failed '+this.options.id+' -> '+JSON.stringify(command) + ' err: ' + error)
+		try {
+		    this.device.connect()
+		    this.reconnect()
+		    this.device.set(command).then((result) => {
+			resolve(result)
+		    }).catch(error => {
+			debugError('Set device failed, even after reconnect '+this.options.id+' -> '+JSON.stringify(command) + ' err: ' + error)
+		    })
+		}
+		catch (error) {
+		    debugError('Reconnect after set failed '+this.options.id + ' err: ' + error)
+		}
+	    })
         })
     }
 
